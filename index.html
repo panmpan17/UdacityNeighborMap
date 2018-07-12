@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1.0">
+	<title>Neighborhood Map</title>
+	<link rel="stylesheet" href="css/index.css">
+	<meta>
+</head>
+<body>
+	<div id="map"></div>
+
+	<aside class="navbar">
+		<input id="search-station" type="text" placeholder="Search ...">
+		<nav  data-bind="foreach: locations">
+			<a data-bind="text: title, click: $parent.changeMarker,visible: showed"></a>
+		</nav>
+	</aside>
+
+	<div id="thirdpartyinfo" data-bind="html: getCurrentLocationSummary(), visible: currentLocation() != null"></div>
+
+	<script src="js/jquery.min.js"></script>
+	<script src="js/knockout.js"></script>
+	<script src="js/model.js"></script>
+	<script src="js/app.js"></script>
+	<script async defer src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyAtXIBSTyv4A8sQch9fdz7yI2dwSy7LCaI&callback=initMap"></script>
+</body>
+</html>
