@@ -17,6 +17,14 @@ html,body {
 	left: 0;
 }
 
+#map.error {
+	font-size: 40px;
+	color: lightgray;
+	height: 300px;
+	top: calc(50% - 150px);
+	text-align: center;
+}
+
 aside.navbar {
 	position: fixed;
 	top: 0;

@@ -13,15 +13,24 @@ var Location = function(data) {
 	this.summary = ko.observable("");
 	this.showed = ko.observable(true);
 
-	this.onClick = data.onClick;
-	this.closeInfowindow = data.closeInfowindow;
+	this.marker.addListener("click", function() {
+		viewmodel.changeMarker(self);
+	})
+
+	this.infowindow = new google.maps.InfoWindow({content: data.address})
+
+	this.closeInfowindow = function() {
+		self.infowindow.open(null, null);
+	}
 
 	this.show = function() {
 		self.showed(true);
+		self.marker.setVisible(true);
 	}
 
 	this.hide = function() {
 		self.showed(false);
+		self.marker.setVisible(false);
 	}
 }
 
@@ -46,16 +55,25 @@ function AppViewModel() {
 		// close all locations' infowindow
 		$.each(self.locations(), function(_, location) {
 			location.closeInfowindow();
+			location.marker.setAnimation(null);
 		})
 
 		// open location's infowindow, set map's center and zoom
-		clickedLocation.onClick()
+		clickedLocation.infowindow.open(map, clickedLocation.marker)
 		map.setCenter(clickedLocation.location)
 		map.setZoom(18)
 
 		// if station summary havn't been fetch, run showStationWiki function
 		if (clickedLocation.summary() == "") {
 			showStationWiki(clickedLocation.title());
+		}
+
+		// set marker's animation
+		if (clickedLocation.marker.getAnimation() != null) {
+			clickedLocation.marker.setAnimation(null);
+		}
+		else {
+			clickedLocation.marker.setAnimation(google.maps.Animation.BOUNCE);
 		}
 	};
 
@@ -94,17 +112,9 @@ function initMap() {
 				var marker = new google.maps.Marker({
 					title: station.name,
 					position: location,
+					animation: google.maps.Animation.DROP,
 					map: map,
 				});
-
-				// New Marker's infowindow
-				var infowindow = new google.maps.InfoWindow({content: address});
-
-				var onClick = function() {infowindow.open(map, marker)}
-				var closeInfowindow = function() {infowindow.open(null, null)};
-
-				// Bind click function to marker
-				marker.addListener("click", onClick)
 
 				// Add new location to viewmodel
 				viewmodel.addLocation({
@@ -113,8 +123,6 @@ function initMap() {
 					place_id: resault[0].place_id,
 					location: location,
 					marker: marker,
-					onClick: onClick,
-					closeInfowindow: closeInfowindow,
 				});
 			});
 	});
@@ -138,9 +146,15 @@ function showStationWiki(station_name) {
 			}
 		},
 		error: function(err) {
-			viewmodel.updateSummary(station_name, "Look like we lost the way to Wiki. ;(");
+			console.log(err);
+			viewmodel.updateSummary(station_name, "Look like we lost the way to Wiki. ;(<br>More error message in console mode.");
 		}
 	});
+}
+
+function googleError() {
+	$("#map").html("Sorry,<br>Google Map api<br>seem to have some problem, ;(")
+	$("#map")[0].classList.add("error");
 }
 
 // Add listener to navbar, if mouse on move in, if not move out
