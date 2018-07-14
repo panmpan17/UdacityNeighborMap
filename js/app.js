@@ -22,27 +22,18 @@ var Location = function(data) {
 	this.closeInfowindow = function() {
 		self.infowindow.open(null, null);
 	}
-
-	this.show = function() {
-		self.showed(true);
-		self.marker.setVisible(true);
-	}
-
-	this.hide = function() {
-		self.showed(false);
-		self.marker.setVisible(false);
-	}
 }
 
 function AppViewModel() {
 	var self = this;
  
 	this.locations = ko.observableArray([]);
-	this.currentLocation = ko.observable(null);
+	this.search_bar = ko.observable();
+	this.current_location = ko.observable(null);
 
 	this.getCurrentLocationSummary = function() {
-		if (this.currentLocation() != null) {
-			return this.currentLocation().summary();
+		if (this.current_location() != null) {
+			return this.current_location().summary();
 		}
 		else {
 			return "";
@@ -50,7 +41,7 @@ function AppViewModel() {
 	}
  
 	this.changeMarker = function(clickedLocation) {
-		self.currentLocation(clickedLocation);
+		self.current_location(clickedLocation);
 
 		// close all locations' infowindow
 		$.each(self.locations(), function(_, location) {
@@ -80,15 +71,29 @@ function AppViewModel() {
 	this.addLocation = function(location) {
 		// add new location
 		self.locations.push(new Location(location));
-	}
+	};
 
+	// Update location's summary
 	this.updateSummary = function(stationName, summary) {
 		$.each(self.locations(), function(_, location) {
 			if (location.title() == stationName) {
 				location.summary(summary);
 			}
 		})
-	}
+	};
+
+	// Filter locations by search bar's value
+	this.visibleLocations = ko.computed(function(){
+		return self.locations().filter(function(location){
+			if(!self.search_bar() || location.title().toLowerCase().indexOf(self.search_bar().toLowerCase()) !== -1) {
+				location.marker.setVisible(true);
+				return location;
+			}
+			else {
+				location.marker.setVisible(false);
+			}
+		});
+	}, this);
 };
 
 function initMap() {
@@ -165,17 +170,6 @@ $(".navbar").on("mouseover", function() {
 $(".navbar").on("mouseout", function() {
 	$(".navbar")[0].classList.remove("focus");
 });
-
-// Add listener to search bar
-$("#search-station").on("input", function (e) {
-	$.each(viewmodel.locations(), function(_, location) {
-		var value = e.target.value;
-
-		// Show station if value found
-		if (location.title().toLowerCase().indexOf(value) != -1) {location.show()}
-		else {location.hide()}
-	})
-})
 
 // Bind viewmodel to knockout.js
 var viewmodel = new AppViewModel();

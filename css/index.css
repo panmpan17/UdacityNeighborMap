@@ -40,7 +40,7 @@ aside.navbar.focus {
 	left: 0;
 }
 
-aside #search-station {
+aside #search_bar {
 	width: calc(100% - 10px);
 	height: 32px;
 	font-size: 20px;
